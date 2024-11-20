@@ -182,7 +182,7 @@ class QLearner:
             # self.logger.log_stat("dead_neural_%s%d" % (name, number), (count / sum), t_env)
 
     def recycle(self):
-        layers = list(self.mixer.named_modules())
+        layers = list(self.mixer.named_modules()) + list(self.mac.agent.named_modules())
         exc = 0
         for i in range(len(layers) - 2):
             act_layer = layers[i + 2][1]
@@ -276,7 +276,7 @@ class QLearner:
                 layers[i + 3] = (output_name, output_layer)
 
     def reset(self):
-        layers = list(self.mixer.named_modules())
+        layers = list(self.mixer.named_modules()) + list(self.mac.agent.named_modules())
         for i in range(len(layers)):
             mlp_name, mlp_layer = layers[i]
             if isinstance(mlp_layer, Linear):

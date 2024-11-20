@@ -18,7 +18,16 @@ They are all located in `src/config`.
 
 All results will be stored in the `Results` folder.
 
-The previous config files used for the SMAC Beta have the suffix `_beta`.
+## Citing Reborn
+If you use ReBorn in your research, please cite our paper:
+```shell
+@inproceedings{qindormant,
+  title={The Dormant Neuron Phenomenon in Multi-Agent Reinforcement Learning Value Factorization},
+  author={Qin, Haoyuan and Ma, Chennan and Deng, Mian and Liu, Zhengzhu and Mei, Songzhu and Liu, Xinwang and Wang, Cheng and Shen, Siqi},
+  booktitle={Advances in Neural Information Processing Systems}
+  year={2024}
+}
+```
 
 ## License
 

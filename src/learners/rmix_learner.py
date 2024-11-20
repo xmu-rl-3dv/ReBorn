@@ -308,7 +308,7 @@ class RMIXLearner:
             # self.logger.log_stat("dead_neural_%s%d" % (name, number), (count / sum), t_env)
 
     def recycle(self):
-        layers = list(self.mixer.named_modules())
+        layers = list(self.mixer.named_modules()) + list(self.mac.agent.named_modules())
         exc = 0
         for i in range(len(layers) - 2):
             act_layer = layers[i + 2][1]
@@ -402,15 +402,15 @@ class RMIXLearner:
                 layers[i + 3] = (output_name, output_layer)
 
     def reset(self):
-        layers = list(self.mixer.named_modules())
+        layers = list(self.mixer.named_modules()) + list(self.mac.agent.named_modules())
         for i in range(len(layers)):
             mlp_name, mlp_layer = layers[i]
             if isinstance(mlp_layer, Linear):
-                if i == len(layers) - 1:
+                if i == len(layers)-1:
                     mlp_layer.reset_parameters()
                     continue
 
-                next_layer = layers[i + 1][1]
+                next_layer = layers[i+1][1]
                 if not isinstance(next_layer, ActivateLayer) and not isinstance(next_layer, GRU):
                     mlp_layer.reset_parameters()
 

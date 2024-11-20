@@ -261,36 +261,35 @@ class IQNLearner:
             # self.logger.log_stat("dead_neural_%s%d" % (name, number), (count / sum), t_env)
 
     def recycle(self):
-        layers = list(self.mixer.named_modules())
+        layers = list(self.mixer.named_modules()) + list(self.mac.agent.named_modules())
         exc = 0
-        with th.no_grad():
-            for i in range(len(layers) - 2):
-                act_layer = layers[i + 2][1]
+        for i in range(len(layers) - 2):
+            act_layer = layers[i + 2][1]
 
-                if isinstance(act_layer, ActivateLayer):
-                    input_name, input_layer = layers[i]
-                    output_name, output_layer = layers[i + 3]
-                    layer_mask = self.mask[act_layer.name]
-                    weight = input_layer.weight.data.T.clone()
-                    bias = input_layer.bias.data.clone()
+            if isinstance(act_layer, ActivateLayer):
+                input_name, input_layer = layers[i]
+                output_name, output_layer = layers[i + 3]
+                layer_mask = self.mask[act_layer.name]
+                weight = input_layer.weight.data.T.clone()
+                bias = input_layer.bias.data.clone()
 
-                    input_layer.reset_parameters()
-                    # avg_weight = (th.matmul(weight, layer_mask)/th.count_nonzero(layer_mask)).reshape(-1, 1)
-                    # avg_bias = (th.matmul(bias, layer_mask) / th.count_nonzero(layer_mask))
-                    # # avg_weight = th.mean(weight, dim=1).reshape(-1, 1)
-                    # # avg_bias = th.mean(bias)
+                input_layer.reset_parameters()
+                # avg_weight = (th.matmul(weight, layer_mask)/th.count_nonzero(layer_mask)).reshape(-1, 1)
+                # avg_bias = (th.matmul(bias, layer_mask) / th.count_nonzero(layer_mask))
+                # # avg_weight = th.mean(weight, dim=1).reshape(-1, 1)
+                # # avg_bias = th.mean(bias)
 
-                    input_layer.weight.data = th.where(layer_mask != exc, weight, input_layer.weight.data.T).T
-                    input_layer.bias.data = th.where(layer_mask != exc, bias, input_layer.bias.data)
+                input_layer.weight.data = th.where(layer_mask != exc, weight, input_layer.weight.data.T).T
+                input_layer.bias.data = th.where(layer_mask != exc, bias, input_layer.bias.data)
 
-                    if isinstance(output_layer, Linear):
-                        output_weight = output_layer.weight.data.T
-                        output_weight[layer_mask == exc] = 0
-                        # output_weight[layer_mask == 2] = 0
-                        output_layer.weight.data = output_weight.T
+                if isinstance(output_layer, Linear):
+                    output_weight = output_layer.weight.data.T
+                    output_weight[layer_mask == exc] = 0
+                    # output_weight[layer_mask == 2] = 0
+                    output_layer.weight.data = output_weight.T
 
-                    layers[i] = (input_name, input_layer)
-                    layers[i + 3] = (output_name, output_layer)
+                layers[i] = (input_name, input_layer)
+                layers[i + 3] = (output_name, output_layer)
 
     def reborn(self):
         layers = list(self.mixer.named_modules())
@@ -356,17 +355,18 @@ class IQNLearner:
                 layers[i + 3] = (output_name, output_layer)
 
     def reset(self):
-        layers = list(self.mixer.named_modules())
+        layers = list(self.mixer.named_modules()) + list(self.mac.agent.named_modules())
         for i in range(len(layers)):
             mlp_name, mlp_layer = layers[i]
             if isinstance(mlp_layer, Linear):
-                if i == len(layers) - 1:
+                if i == len(layers)-1:
                     mlp_layer.reset_parameters()
                     continue
 
-                next_layer = layers[i + 1][1]
+                next_layer = layers[i+1][1]
                 if not isinstance(next_layer, ActivateLayer) and not isinstance(next_layer, GRU):
                     mlp_layer.reset_parameters()
+
 
     def _update_targets(self):
         self.target_mac.load_state(self.mac)
